@@ -30,8 +30,4 @@ public interface ExchangeService {
     void delete(Long id);
 
     ExchangeRate update(Long id, ExchangeRate exchangeRate);
-
-
-
-
 }
