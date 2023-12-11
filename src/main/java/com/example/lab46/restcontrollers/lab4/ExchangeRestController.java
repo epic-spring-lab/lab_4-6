@@ -17,9 +17,14 @@ import java.util.List;
 public class ExchangeRestController {
     private final ExchangeService exchangeService;
 
-    @GetMapping("/latest")
+    @GetMapping("/today")
     public ResponseEntity<List<CurrencyDTO>> getAllTodayExchanges() {
         return ResponseEntity.ok(exchangeService.getAllTodayCurrencies());
+    }
+
+    @GetMapping("/pair")
+    public ResponseEntity<List<ExchangeRate>> getAllExchangesByPair(@RequestParam(required = false, name = "source") String source, @RequestParam(required = false, name = "target") String target) {
+        return ResponseEntity.ok(exchangeService.getAllByPair(source, target));
     }
 
     @GetMapping("")
@@ -33,8 +38,13 @@ public class ExchangeRestController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ExchangeRate> createExchange(@RequestBody ExchangeRate exchangeRate, @PathVariable Long id) {
-        return new ResponseEntity<>(exchangeService.update(id, exchangeRate), HttpStatus.OK);
+    public void updateExchange(@RequestBody ExchangeRate exchangeRate, @PathVariable Long id) {
+        exchangeService.update(id, exchangeRate);
+    }
+
+    @PutMapping("/rate/{id}")
+    public void updateExchangeRate(@RequestBody String rate, @PathVariable Long id) {
+        exchangeService.updateRate(id, Double.parseDouble(rate));
     }
 
     @DeleteMapping("/{id}")

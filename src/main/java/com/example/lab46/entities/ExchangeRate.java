@@ -10,6 +10,10 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @NoArgsConstructor
+@NamedQuery(
+        name = "ExchangeRate.findAllTodayExchanges",
+        query = "SELECT er FROM ExchangeRate er where er.date.day = :day and er.date.month = :month and er.date.year = :year"
+)
 public class ExchangeRate {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

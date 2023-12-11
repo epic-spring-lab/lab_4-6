@@ -2,8 +2,10 @@ package com.example.lab46.services.impl;
 
 import com.example.lab46.dtos.CurrencyDTO;
 import com.example.lab46.dtos.DateWithExchangeRatesDTO;
+import com.example.lab46.entities.Currency;
 import com.example.lab46.entities.DateEntity;
 import com.example.lab46.entities.ExchangeRate;
+import com.example.lab46.repositories.CurrencyRepository;
 import com.example.lab46.repositories.ExchangeRateRepository;
 import com.example.lab46.services.DateService;
 import com.example.lab46.services.ExchangeService;
@@ -19,6 +21,7 @@ import java.util.Objects;
 public class ExchangeServiceBean implements ExchangeService {
     private final ExchangeRateRepository exchangeRepo;
     private final DateService dateService;
+    private final CurrencyRepository currencyRepo;
 
     @Override
     public List<ExchangeRate> createExchangeRates(List<ExchangeRate> rates) {
@@ -31,10 +34,11 @@ public class ExchangeServiceBean implements ExchangeService {
         List<DateEntity> dates = dateService.getDatesInRange(dateFrom, dateTo);
 
         return dates.stream().map(dateEntity -> {
-            List<ExchangeRate> exchangeRates = exchangeRepo.findAll().stream().filter(exchangeRate -> Objects.equals(exchangeRate.getDate().getDay(), dateEntity.getDay())
-                    && Objects.equals(exchangeRate.getDate().getMonth(), dateEntity.getMonth())
-                    && Objects.equals(exchangeRate.getDate().getYear(), dateEntity.getYear())
-                    && exchangeRate.getSourceCurrency().getName().equals(currency1)).toList();
+//            List<ExchangeRate> exchangeRates = exchangeRepo.findAll().stream().filter(exchangeRate -> Objects.equals(exchangeRate.getDate().getDay(), dateEntity.getDay())
+//                    && Objects.equals(exchangeRate.getDate().getMonth(), dateEntity.getMonth())
+//                    && Objects.equals(exchangeRate.getDate().getYear(), dateEntity.getYear())
+//                    && exchangeRate.getSourceCurrency().getName().equals(currency1)).toList();
+            List<ExchangeRate> exchangeRates = exchangeRepo.findByDateAAndSourceCurrency(dateEntity.getDay(), dateEntity.getMonth(), dateEntity.getYear(), currency1);
             return DateWithExchangeRatesDTO.builder()
                     .date(dateEntity)
                     .exchangeRates(exchangeRates)
@@ -52,14 +56,15 @@ public class ExchangeServiceBean implements ExchangeService {
     @Override
     public CurrencyDTO getTodayCurrency(String currency1, String currency2) {
         return GetTodayCurrencies().stream().filter(exchangeRate -> exchangeRate.getSourceCurrency().getName().equals(currency1)
-                && exchangeRate.getTargetCurrency().getName().equals(currency2)).
+                        && exchangeRate.getTargetCurrency().getName().equals(currency2)).
                 findFirst().map(CurrencyMapper::toDto).get();
     }
 
     private List<ExchangeRate> GetTodayCurrencies() {
         LocalDate localDate = LocalDate.now();
-        return exchangeRepo.findAll().stream().filter(exchangeRate -> exchangeRate.getDate().getDay() == localDate.getDayOfMonth()
-                && exchangeRate.getDate().getMonth() == localDate.getMonthValue()).toList();
+//        return exchangeRepo.findAll().stream().filter(exchangeRate -> exchangeRate.getDate().getDay() == localDate.getDayOfMonth()
+//                && exchangeRate.getDate().getMonth() == localDate.getMonthValue()).toList();
+        return exchangeRepo.findAllTodayExchanges(localDate.getDayOfMonth(), localDate.getMonthValue(), localDate.getYear());
     }
 
     @Override
@@ -73,11 +78,19 @@ public class ExchangeServiceBean implements ExchangeService {
     }
 
     @Override
+    public List<ExchangeRate> getAllByPair(String source, String target) {
+        Currency sourceCurrency = currencyRepo.findByName(source);
+        Currency targetCurrency = currencyRepo.findByName(target);
+        return exchangeRepo.findBySourceCurrencyAndTargetCurrency(sourceCurrency, targetCurrency);
+    }
+
+    @Override
     public void updateRate(Long id, Double rate) {
-        if(exchangeRepo.findById(id).isEmpty()) throw new NullPointerException();
-        ExchangeRate exchangeRate = exchangeRepo.findById(id).get();
-        exchangeRate.setRate(rate);
-        exchangeRepo.save(exchangeRate);
+//        if (exchangeRepo.findById(id).isEmpty()) throw new NullPointerException();
+//        ExchangeRate exchangeRate = exchangeRepo.findById(id).get();
+//        exchangeRate.setRate(rate);
+//        exchangeRepo.save(exchangeRate);
+        exchangeRepo.updateRate(rate, id);
     }
 
     @Override
@@ -96,14 +109,17 @@ public class ExchangeServiceBean implements ExchangeService {
     }
 
     @Override
-    public ExchangeRate update(Long id, ExchangeRate exchangeRate) {
-        if(exchangeRepo.findById(id).isEmpty()) throw new NullPointerException();
-        ExchangeRate exchangeRateToUpdate = exchangeRepo.findById(id).get();
-        exchangeRateToUpdate.setRate(exchangeRate.getRate());
-        exchangeRateToUpdate.setDate(exchangeRate.getDate());
-        exchangeRateToUpdate.setSourceCurrency(exchangeRate.getSourceCurrency());
-        exchangeRateToUpdate.setTargetCurrency(exchangeRate.getTargetCurrency());
-        return exchangeRepo.save(exchangeRateToUpdate);
+    public void update(Long id, ExchangeRate exchangeRate) {
+//        if (exchangeRepo.findById(id).isEmpty()) throw new NullPointerException();
+//        ExchangeRate exchangeRateToUpdate = exchangeRepo.findById(id).get();
+//        exchangeRateToUpdate.setRate(exchangeRate.getRate());
+//        exchangeRateToUpdate.setDate(exchangeRate.getDate());
+//        exchangeRateToUpdate.setSourceCurrency(exchangeRate.getSourceCurrency());
+//        exchangeRateToUpdate.setTargetCurrency(exchangeRate.getTargetCurrency());
+//        return exchangeRepo.save(exchangeRateToUpdate);
+        exchangeRepo.updateRates(exchangeRate.getDate().getId(),
+                exchangeRate.getSourceCurrency().getId(), exchangeRate.getTargetCurrency().getId(),
+                exchangeRate.getRate(), exchangeRate.getId());
     }
 
 

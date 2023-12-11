@@ -21,6 +21,8 @@ public interface ExchangeService {
 
     List<ExchangeRate> getAll();
 
+    List<ExchangeRate> getAllByPair(String source, String target);
+
     void updateRate(Long id, Double rate);
 
     ExchangeRate getById(Long id);
@@ -29,5 +31,5 @@ public interface ExchangeService {
 
     void delete(Long id);
 
-    ExchangeRate update(Long id, ExchangeRate exchangeRate);
+    void update(Long id, ExchangeRate exchangeRate);
 }
